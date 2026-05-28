@@ -1,714 +1,591 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RAKA::OPS</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#1e2128;--surface:#252830;--surface2:#2c3039;--surface3:#333843;
-  --border:#383d47;--border2:#434954;
-  --teal:#3db38a;--teal-light:rgba(61,179,138,0.12);--teal-mid:rgba(61,179,138,0.3);
-  --amber:#e8920a;--amber-light:rgba(232,146,10,0.12);
-  --slate:#e8e4dc;--slate2:#c4bfb8;--slate3:#8c8882;--slate4:#5a5752;
-  --red:#e06060;--red-light:rgba(224,96,96,0.12);
-  --green:#4caf7d;--green-light:rgba(76,175,125,0.12);
-  --blue:#5b9bd5;--blue-light:rgba(91,155,213,0.12);
-  --mono:'JetBrains Mono',monospace;--sans:'Plus Jakarta Sans',sans-serif;
-  --radius:10px;--radius-sm:6px;
-  --shadow:0 1px 3px rgba(0,0,0,0.25),0 1px 2px rgba(0,0,0,0.15);
-  --shadow-md:0 4px 12px rgba(0,0,0,0.3),0 2px 4px rgba(0,0,0,0.2);
-}
-html,body{height:100%;background:var(--bg);color:var(--slate);font-family:var(--sans);font-size:14px;line-height:1.5}
-.app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;height:100vh;overflow:hidden}
-.topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;box-shadow:var(--shadow);z-index:10}
-.logo{font-family:var(--mono);font-size:13px;color:var(--teal);font-weight:600;letter-spacing:1px}
-.logo span{color:var(--slate4)}
-.topbar-right{margin-left:auto;display:flex;gap:10px;align-items:center}
-.chip{font-size:11px;font-family:var(--mono);color:var(--slate3);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:20px}
-.chip b{color:var(--teal);font-weight:600}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;display:flex;flex-direction:column}
-.nav-group{padding:16px 16px 4px;font-size:10px;font-family:var(--mono);color:var(--slate4);letter-spacing:1.5px;text-transform:uppercase}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--slate2);border-left:3px solid transparent;transition:all 0.15s;margin:1px 0}
-.nav-item:hover{background:var(--surface2);color:var(--slate)}
-.nav-item.active{background:var(--teal-light);color:var(--teal);border-left-color:var(--teal);font-weight:500}
-.nav-icon{width:16px;height:16px;opacity:0.5;flex-shrink:0}
-.nav-item.active .nav-icon{opacity:1}
-.main-wrap{display:flex;overflow:hidden;height:100%}
-.main{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
-.page{display:none}.page.active{display:flex;flex-direction:column;gap:20px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-.card-title{font-size:11px;font-family:var(--mono);color:var(--slate3);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;font-weight:600}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-.metric{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-.metric-label{font-size:11px;color:var(--slate3);margin-bottom:6px;font-weight:500}
-.metric-value{font-size:28px;font-weight:600;font-family:var(--mono);line-height:1;color:var(--slate)}
-.metric-value.teal{color:var(--teal)}.metric-value.amber{color:var(--amber)}
-.metric-sub{font-size:11px;color:var(--slate4);margin-top:5px}
-.prog-row{margin-bottom:12px;cursor:pointer;padding:8px;border-radius:var(--radius-sm);transition:background 0.15s}
-.prog-row:hover{background:var(--surface2)}
-.prog-row:last-child{margin-bottom:0}
-.prog-label{display:flex;justify-content:space-between;margin-bottom:5px;align-items:center}
-.prog-name{font-size:13px;font-weight:500;color:var(--slate)}
-.prog-pct{font-size:11px;font-family:var(--mono);color:var(--slate3)}
-.prog-track{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
-.fill-teal{background:var(--teal)}.fill-amber{background:var(--amber)}.fill-blue{background:var(--blue)}.fill-dim{background:var(--border2)}.fill-green{background:var(--green)}
-.tag{display:inline-flex;align-items:center;font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
-.tag-active{background:var(--amber-light);color:var(--amber)}
-.tag-done{background:var(--green-light);color:var(--green)}
-.tag-pending,.tag-planned,.tag-early{background:var(--surface3);color:var(--slate3)}
-.tag-live{background:var(--green-light);color:var(--green)}
-.tag-blocked,.tag-locate{background:var(--red-light);color:var(--red)}
-.tag-winding-down{background:var(--surface3);color:var(--slate3)}
-.btn{background:none;border:1px solid var(--border2);color:var(--slate2);font-family:var(--sans);font-size:12px;padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;font-weight:500}
-.btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-light)}
-.btn-primary{background:var(--teal);color:#fff;border-color:var(--teal)}
-.btn-primary:hover{background:#236b58;border-color:#236b58;color:#fff}
-.btn-danger:hover{border-color:var(--red);color:var(--red);background:var(--red-light)}
-.btn-sm{font-size:11px;padding:4px 10px}
-.btn-chat{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal-mid);font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.btn-chat:hover{background:var(--teal);color:#fff}
-.btn-chat svg{width:12px;height:12px;flex-shrink:0}
-.task-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
-.task-row:last-child{border-bottom:none}
-.task-check{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s}
-.task-check:hover{border-color:var(--teal)}
-.task-check.done{background:var(--teal);border-color:var(--teal)}
-.task-check.done::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
-.task-text{flex:1;font-size:13px;color:var(--slate)}
-.task-text.done{color:var(--slate4);text-decoration:line-through}
-.task-del{opacity:0;transition:opacity 0.15s;background:none;border:none;cursor:pointer;color:var(--slate4);font-size:16px;padding:0 4px;line-height:1}
-.task-row:hover .task-del{opacity:1}
-.task-del:hover{color:var(--red)}
-.item-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:var(--surface)}
-.item-row:last-child{margin-bottom:0}
-.item-row:hover{border-color:var(--teal-mid);background:var(--teal-light)}
-.item-row-name{font-size:13px;font-weight:500;color:var(--slate)}
-.item-row-sub{font-size:11px;color:var(--slate4);margin-top:2px}
-.item-row-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.goal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
-.goal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px}
-.goal-title-text{font-size:14px;font-weight:600;color:var(--slate)}
-.goal-sub{font-size:11px;color:var(--slate4);margin-top:2px}
-.goal-actions{display:flex;gap:6px;flex-shrink:0;align-items:center}
-.add-task-row{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
-.input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--slate);font-family:var(--sans);font-size:13px;outline:none;width:100%;transition:border 0.15s}
-.input:focus{border-color:var(--teal);background:var(--surface)}
-.input-sm{padding:5px 9px;font-size:12px}
-.form-select{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--slate);font-family:var(--sans);font-size:13px;outline:none;width:100%}
-.form-select:focus{border-color:var(--teal)}
-.form-row{margin-bottom:12px}
-.form-label{font-size:11px;font-family:var(--mono);color:var(--slate3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.5px}
-.today-entry{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
-.today-entry:last-child{border-bottom:none}
-.today-time{font-family:var(--mono);font-size:10px;color:var(--slate4);min-width:38px;margin-top:2px;font-weight:600}
-.today-text{font-size:13px;color:var(--slate);flex:1;line-height:1.4}
-.today-tag{font-size:10px;color:var(--slate4);font-family:var(--mono);margin-top:2px}
-.today-del{opacity:0;transition:opacity 0.15s;background:none;border:none;cursor:pointer;color:var(--slate4);font-size:16px;line-height:1}
-.today-entry:hover .today-del{opacity:1}
-.today-del:hover{color:var(--red)}
-.next-item{padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:var(--radius-sm);margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.next-label{font-size:10px;font-family:var(--mono);color:var(--teal);margin-bottom:3px;font-weight:600}
-.next-text{font-size:13px;color:var(--slate)}
-.next-del{opacity:0;transition:opacity 0.15s;background:none;border:none;cursor:pointer;color:var(--slate4);font-size:16px;margin-left:auto;line-height:1}
-.next-item:hover .next-del{opacity:1}
-.next-del:hover{color:var(--red)}
-.quick-log-bar{display:flex;gap:8px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:14px;border:1px solid var(--border)}
-.page-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.page-title{font-size:18px;font-weight:600;color:var(--slate)}
-.page-subtitle{font-size:12px;color:var(--slate4);margin-top:2px}
-.prog-edit-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.prog-edit-row input[type=range]{flex:1;accent-color:var(--teal)}
-.section-empty{padding:24px;text-align:center;font-size:12px;color:var(--slate4);font-family:var(--mono)}
-/* Side Panel */
-.side-panel{width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:width 0.3s ease;flex-shrink:0;box-shadow:none}
-.side-panel.open{width:360px;box-shadow:-4px 0 20px rgba(0,0,0,0.06)}
-.panel-topbar{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0}
-.panel-context-title{font-size:13px;font-weight:600;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.panel-context-sub{font-size:11px;color:var(--slate4);margin-top:2px}
-.panel-close{background:none;border:none;cursor:pointer;color:var(--slate4);font-size:20px;padding:0;line-height:1;flex-shrink:0}
-.panel-close:hover{color:var(--red)}
-.panel-model{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
-.model-label{font-size:10px;font-family:var(--mono);color:var(--slate4)}
-.model-btn{font-size:10px;font-family:var(--mono);padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:none;cursor:pointer;color:var(--slate3);transition:all 0.15s;font-weight:600}
-.model-btn.active{background:var(--teal-light);color:var(--teal);border-color:var(--teal-mid)}
-.chat-log{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
-.chat-msg{padding:10px 13px;border-radius:var(--radius-sm);font-size:13px;line-height:1.55}
-.chat-msg.assistant{background:var(--surface2);border-left:3px solid var(--teal);color:var(--slate)}
-.chat-msg.user-msg{background:var(--teal-light);color:var(--slate2);margin-left:16px}
-.chat-msg-label{font-family:var(--mono);font-size:9px;color:var(--teal);display:block;margin-bottom:5px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
-.chat-thinking{font-family:var(--mono);font-size:11px;color:var(--slate4)}
-.chat-input-area{padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0}
-.chat-input-row{display:flex;gap:8px;margin-bottom:8px}
-.chat-send{background:var(--teal);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 14px;font-family:var(--mono);font-size:10px;cursor:pointer;font-weight:600;white-space:nowrap;letter-spacing:0.5px}
-.chat-send:hover{background:#236b58}
-.quick-chips{display:flex;gap:6px;flex-wrap:wrap}
-.quick-chip{font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:none;cursor:pointer;color:var(--slate3);font-family:var(--sans);transition:all 0.15s}
-.quick-chip:hover{background:var(--teal-light);color:var(--teal);border-color:var(--teal-mid)}
-/* Modals */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(44,52,64,0.5);z-index:100;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;margin:20px;box-shadow:var(--shadow-md)}
-.modal-title{font-size:14px;font-weight:600;color:var(--slate);margin-bottom:18px}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.side-panel.expanded{position:fixed;top:0;right:0;bottom:0;left:0;width:100% !important;z-index:200;border-left:none}
-.side-panel.expanded .chat-log{max-height:none}
-.side-panel.expanded .panel-topbar{padding:20px 24px}
-.side-panel.expanded .chat-log{padding:20px 24px}
-.side-panel.expanded .chat-input-area{padding:16px 24px}
-.side-panel.expanded .chat-msg{max-width:720px;margin-left:auto;margin-right:auto}
-.side-panel.expanded .chat-msg.user-msg{max-width:600px;margin-left:auto;margin-right:0}
-.panel-close{transition:color 0.15s}
-@media(max-width:700px){
-  .app{grid-template-columns:1fr;grid-template-rows:56px auto 1fr}
-  .sidebar{grid-row:2;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:6px 8px;border-right:none;border-bottom:1px solid var(--border)}
-  .nav-group{display:none}
-  .nav-item{padding:7px 14px;border-left:none;border-bottom:2px solid transparent;border-radius:var(--radius-sm);font-size:12px;white-space:nowrap;margin:0 2px}
-  .nav-item.active{border-bottom-color:var(--teal);border-left-color:transparent;background:var(--teal-light)}
-  .grid3,.grid2{grid-template-columns:1fr}
-  .side-panel.open{width:100%;position:fixed;top:0;right:0;bottom:0;z-index:50;border-left:none}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raka — IAM & Cybersecurity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1e3a5f;
+      --ink-mid: #4a637e;
+      --ink-light: #8fa5bc;
+      --gold: #b5873a;
+      --gold-light: #f5ead6;
+      --paper: #faf9f6;
+      --paper-dark: #eef2f7;
+      --line: #d8e3ed;
+      --white: #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(250,249,246,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+    }
+    .nav-links { display: flex; gap: 2.2rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--ink-mid);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+
+    .nav-toggle {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
+    }
+    .nav-toggle span { display: block; width: 22px; height: 1.5px; background: var(--ink); border-radius: 2px; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 64px;
+    }
+    .hero-left {
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 4rem 3.5rem;
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.4rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 2.5rem;
+    }
+    .hero-meta {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .meta-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      min-width: 90px;
+    }
+    .meta-val {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.65);
+    }
+    .hero-right {
+      background: var(--gold-light);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 4rem 3.5rem;
+    }
+    .hero-right-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+    .hero-desc {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: var(--ink-mid);
+      line-height: 1.85;
+      max-width: 420px;
+    }
+    .hero-stats-row {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(181,135,58,0.2);
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--ink-light);
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 5.5rem 3rem; }
+    .container { max-width: 960px; margin: 0 auto; }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .section-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--gold);
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    /* ── STACK ── */
+    #stack { background: var(--white); }
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .stack-item {
+      background: var(--white);
+      padding: 1.4rem 1.6rem;
+      transition: background 0.18s;
+    }
+    .stack-item:hover { background: var(--gold-light); }
+    .stack-cat {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+    }
+    .stack-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* ── PROJECTS ── */
+    #projects { background: var(--paper); }
+    .project-item {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2.5rem;
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--line);
+      align-items: start;
+    }
+    .project-item:first-child { border-top: 1px solid var(--line); }
+    .proj-left {}
+    .proj-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.2rem;
+    }
+    .proj-type {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+    }
+    .proj-desc {
+      font-size: 0.9rem;
+      color: var(--ink-mid);
+      font-weight: 300;
+      line-height: 1.7;
+      margin-bottom: 0.85rem;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border: 1px solid var(--line);
+      border-radius: 100px;
+      color: var(--ink-mid);
+    }
+
+    /* ── SPEAKING ── */
+    #speaking { background: var(--ink); }
+    #speaking h2 { color: var(--white); }
+    #speaking .section-num { color: var(--gold); }
+    .talk-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 2.2rem;
+      margin-bottom: 1rem;
+    }
+    .talk-venue {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+    .talk-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.35;
+      margin-bottom: 1rem;
+    }
+    .talk-desc {
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.75;
+      max-width: 600px;
+    }
+    .talk-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 1.25rem;
+    }
+    .talk-pill {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid rgba(181,135,58,0.3);
+      color: rgba(181,135,58,0.8);
+    }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--paper-dark); text-align: center; padding: 5rem 2rem; }
+    #contact .container { max-width: 500px; }
+    #contact h2 { margin-bottom: 0.6rem; }
+    .contact-sub {
+      font-size: 0.9rem;
+      color: var(--ink-mid);
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
+    .contact-row { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 0.7rem 1.6rem;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .btn-solid { background: var(--ink); color: var(--white); }
+    .btn-solid:hover { background: var(--gold); }
+    .btn-outline { border: 1.5px solid var(--ink); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    footer {
+      background: var(--ink);
+      text-align: center;
+      padding: 1.4rem 2rem;
+    }
+    footer p { font-size: 0.78rem; color: rgba(255,255,255,0.2); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex; flex-direction: column;
+        position: fixed; top: 56px; left: 0; right: 0;
+        background: var(--paper); padding: 1.5rem; gap: 1.2rem;
+        border-bottom: 1px solid var(--line); z-index: 99;
+      }
+      .nav-toggle { display: flex; }
+      #hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 3rem 1.5rem 2.5rem; min-height: 55vw; }
+      .hero-right { padding: 2.5rem 1.5rem 3rem; }
+      h1 { font-size: 2.3rem; }
+      section { padding: 3.5rem 1.25rem; }
+      .project-item { grid-template-columns: 1fr; gap: 0.75rem; }
+    }
+
+    /* ── SCROLL FADE ── */
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+  </style>
 </head>
 <body>
-<div class="app">
-  <div class="topbar">
-    <div class="logo">RAKA<span>::</span>OPS</div>
-    <div class="topbar-right">
-      <div class="chip">done <b id="stat-done">—</b></div>
-      <div class="chip">active <b id="stat-active">—</b></div>
-      <div class="chip" id="clock-pill">—</div>
-    </div>
-  </div>
 
-  <div class="sidebar">
-    <div class="nav-group">menu</div>
-    <div class="nav-item active" onclick="nav('dashboard',this)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-      Dashboard
-    </div>
-    <div class="nav-item" onclick="nav('progress',this)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12l4-4 3 3 4-5 3 2"/></svg>
-      Certifications
-    </div>
-    <div class="nav-item" onclick="nav('goals',this)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg>
-      Goals
-    </div>
-    <div class="nav-item" onclick="nav('labs',this)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 1v6l-3 5h12l-3-5V1M5 1h6"/></svg>
-      Labs & Projects
-    </div>
-    <div class="nav-item" onclick="nav('today',this)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="12" rx="1.5"/><path d="M5 1v4M11 1v4M1 7h14"/></svg>
-      Today
-    </div>
-  </div>
+<nav>
+  <a href="#hero" class="nav-logo">Raka</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#speaking">Speaking</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
 
-  <div class="main-wrap">
-    <div class="main" id="main-content">
-
-      <!-- DASHBOARD -->
-      <div id="page-dashboard" class="page active">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Good to see you, Raka</div>
-            <div class="page-subtitle" id="dash-date">—</div>
-          </div>
-          <button class="btn-chat" onclick="openGlobalChat()">
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h10v7H7l-3 3V8H1z"/></svg>
-            Ask assistant
-          </button>
-        </div>
-        <div class="grid3">
-          <div class="metric"><div class="metric-label">Tasks completed</div><div class="metric-value teal" id="ov-done">—</div><div class="metric-sub">all time</div></div>
-          <div class="metric"><div class="metric-label">Active goals</div><div class="metric-value amber" id="ov-active">—</div><div class="metric-sub">in progress</div></div>
-          <div class="metric"><div class="metric-label">Still remaining</div><div class="metric-value" id="ov-remaining">—</div><div class="metric-sub">tasks left</div></div>
-        </div>
-        <div class="grid2">
-          <div class="card">
-            <div class="card-title">Certification tracks — click to chat</div>
-            <div id="dash-certs"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Goal progress — click to chat</div>
-            <div id="dash-goals"></div>
-          </div>
-        </div>
-        <div class="grid2">
-          <div class="card">
-            <div class="card-title">Today's activity</div>
-            <div class="quick-log-bar">
-              <input class="input input-sm" id="quick-log-input" placeholder="Log what you just worked on..." onkeydown="if(event.key==='Enter')quickLog()">
-              <button class="btn btn-sm btn-primary" onclick="quickLog()">Log</button>
-            </div>
-            <div id="dash-today-log"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Up next</div>
-            <div id="dash-nextup"></div>
-          </div>
-        </div>
+<!-- HERO -->
+<section id="hero" style="padding: 0;">
+  <div class="hero-left">
+    <div class="hero-eyebrow">IAM &amp; Cybersecurity</div>
+    <h1>Ravi<br>Karthick<br>Sankar</h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="meta-label">Based in</span>
+        <span class="meta-val">San Francisco Bay Area</span>
       </div>
-
-      <!-- CERTIFICATIONS -->
-      <div id="page-progress" class="page">
-        <div class="page-header">
-          <div><div class="page-title">Certifications</div><div class="page-subtitle">Click Chat on any track to discuss it</div></div>
-          <button class="btn" onclick="openAddCertModal()">+ Add cert</button>
-        </div>
-        <div id="certs-list"></div>
+      <div class="hero-meta-item">
+        <span class="meta-label">Experience</span>
+        <span class="meta-val">14+ years in IAM</span>
       </div>
-
-      <!-- GOALS -->
-      <div id="page-goals" class="page">
-        <div class="page-header">
-          <div><div class="page-title">Goals</div><div class="page-subtitle">Click Chat on any goal to get guidance</div></div>
-          <button class="btn" onclick="openAddGoalModal()">+ New goal</button>
-        </div>
-        <div id="goals-list"></div>
-      </div>
-
-      <!-- LABS -->
-      <div id="page-labs" class="page">
-        <div class="page-header">
-          <div><div class="page-title">Labs & Projects</div><div class="page-subtitle">Click any item to chat about it</div></div>
-          <button class="btn" onclick="openAddLabModal()">+ Add</button>
-        </div>
-        <div class="grid2">
-          <div class="card"><div class="card-title">Lab environments</div><div id="labs-lab"></div></div>
-          <div class="card"><div class="card-title">Active projects</div><div id="labs-project"></div></div>
-        </div>
-      </div>
-
-      <!-- TODAY -->
-      <div id="page-today" class="page">
-        <div class="page-header">
-          <div><div class="page-title">Today</div><div class="page-subtitle" id="today-date-label">—</div></div>
-        </div>
-        <div class="grid2">
-          <div class="card">
-            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">Today's log<button class="btn btn-sm" onclick="openAddLogModal()">+ Log</button></div>
-            <div id="today-log-list"></div>
-          </div>
-          <div class="card">
-            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">Up next<button class="btn btn-sm" onclick="openAddNextModal()">+ Add</button></div>
-            <div id="nextup-list"></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- SIDE PANEL -->
-    <div class="side-panel" id="side-panel">
-      <div class="panel-topbar">
-        <div style="flex:1;min-width:0">
-          <div class="panel-context-title" id="panel-title">Assistant</div>
-          <div class="panel-context-sub" id="panel-sub">Ask anything about your progress</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="panel-close" id="expand-btn" onclick="toggleExpand()" title="Expand to full screen">
-            <svg id="expand-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2h4v4M6 14H2v-4M14 6l-5 5M2 10l5-5"/></svg>
-          </button>
-          <button class="panel-close" onclick="closePanel()">×</button>
-        </div>
-      </div>
-      <div class="panel-model">
-        <span class="model-label">model:</span>
-        <button class="model-btn active" id="mbtn-fast" onclick="setModel('llama3.2:latest','fast')">llama3.2 · fast</button>
-        <button class="model-btn" id="mbtn-smart" onclick="setModel('deepseek-r1:32b','smart')">deepseek · smart</button>
-        <button class="model-btn" style="margin-left:auto;color:var(--red)" onclick="clearHistory()">clear</button>
-      </div>
-      <div class="chat-log" id="chat-log"></div>
-      <div class="chat-input-area">
-        <div class="chat-input-row">
-          <input class="input" id="chat-input" placeholder="Ask something..." onkeydown="if(event.key==='Enter')sendChat()">
-          <button class="chat-send" onclick="sendChat()">SEND</button>
-        </div>
-        <div class="quick-chips" id="quick-chips"></div>
+      <div class="hero-meta-item">
+        <span class="meta-label">Goal</span>
+        <span class="meta-val">Zero Trust Architect</span>
       </div>
     </div>
   </div>
-</div>
+  <div class="hero-right">
+    <div class="hero-right-label">About</div>
+    <p class="hero-desc">
+      Senior Solutions Advisory Consultant specializing in identity and access management, privileged access, and agentic AI security. I design and implement IAM infrastructure for enterprises and government agencies — and speak at conferences about what's coming next.
+    </p>
+    <div class="hero-stats-row">
+      <div>
+        <div class="stat-num">14+</div>
+        <div class="stat-label">Years</div>
+      </div>
+      <div>
+        <div class="stat-num">5</div>
+        <div class="stat-label">Platforms</div>
+      </div>
+      <div>
+        <div class="stat-num">RSAC</div>
+        <div class="stat-label">2026 Speaker</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<!-- MODALS -->
-<div class="modal-overlay" id="modal-goal">
-  <div class="modal">
-    <div class="modal-title">Goal</div>
-    <input type="hidden" id="edit-goal-id">
-    <div class="form-row"><label class="form-label">Title</label><input class="input" id="goal-title" placeholder="e.g. Zero Trust Architecture"></div>
-    <div class="form-row"><label class="form-label">Subtitle</label><input class="input" id="goal-subtitle" placeholder="e.g. long-term career target"></div>
-    <div class="form-row"><label class="form-label">Category</label><select class="form-select" id="goal-category"><option value="career">Career</option><option value="project">Project</option><option value="learning">Learning</option><option value="general">General</option></select></div>
-    <div class="form-row"><label class="form-label">Status</label><select class="form-select" id="goal-status"><option value="active">Active</option><option value="pending">Pending</option><option value="done">Done</option><option value="paused">Paused</option></select></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-goal')">Cancel</button><button class="btn btn-primary" onclick="saveGoal()">Save</button></div>
+<!-- CORE STACK -->
+<section id="stack">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">01</span>
+      <h2>Core Stack</h2>
+    </div>
+    <div class="stack-grid reveal">
+      <div class="stack-item">
+        <div class="stack-cat">CIAM / SSO</div>
+        <div class="stack-name">Okta</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-cat">Directory</div>
+        <div class="stack-name">Radiant Logic</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-cat">Identity Cloud</div>
+        <div class="stack-name">Entra ID</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-cat">Emerging</div>
+        <div class="stack-name">Agentic AI Security</div>
+      </div>
+    </div>
   </div>
-</div>
-<div class="modal-overlay" id="modal-cert">
-  <div class="modal">
-    <div class="modal-title">Add certification track</div>
-    <div class="form-row"><label class="form-label">Title</label><input class="input" id="cert-title" placeholder="e.g. CISSP"></div>
-    <div class="form-row"><label class="form-label">Subtitle</label><input class="input" id="cert-subtitle" placeholder="e.g. 6-week plan"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-cert')">Cancel</button><button class="btn btn-primary" onclick="saveCert()">Save</button></div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">02</span>
+      <h2>Projects</h2>
+    </div>
+
+    <div class="project-item reveal">
+      <div class="proj-left">
+        <div class="proj-name">ACRF</div>
+        <div class="proj-type">Framework</div>
+      </div>
+      <div>
+        <p class="proj-desc">Agent Communication Risk Framework — a 10-dimension risk model for securing AI agent-to-agent communication. Co-authored and open-sourced post-RSAC 2026.</p>
+        <div class="tags">
+          <span class="tag">MCP Security</span>
+          <span class="tag">OWASP</span>
+          <span class="tag">Open Source</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-item reveal">
+      <div class="proj-left">
+        <div class="proj-name">Swoopt</div>
+        <div class="proj-type">Mobile App</div>
+      </div>
+      <div>
+        <p class="proj-desc">SF street parking and street cleaning alert app. Notifies users of upcoming restrictions before they get a ticket.</p>
+        <div class="tags">
+          <span class="tag">React Native</span>
+          <span class="tag">Node.js</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-item reveal">
+      <div class="proj-left">
+        <div class="proj-name">RAKA::OPS</div>
+        <div class="proj-type">Local Infrastructure</div>
+      </div>
+      <div>
+        <p class="proj-desc">Personal ops and AI dashboard running locally on Mac Studio M4 Max. Integrates Ollama with persistent chat history, model switcher, and context-keyed memory.</p>
+        <div class="tags">
+          <span class="tag">Node.js</span>
+          <span class="tag">SQLite</span>
+          <span class="tag">Ollama</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-item reveal">
+      <div class="proj-left">
+        <div class="proj-name">CodePet</div>
+        <div class="proj-type">Developer Tool</div>
+      </div>
+      <div>
+        <p class="proj-desc">GitHub activity-driven digital pet. Commit more code, keep your pet alive. Gamifies developer productivity.</p>
+        <div class="tags">
+          <span class="tag">GitHub API</span>
+          <span class="tag">React Native</span>
+        </div>
+      </div>
+    </div>
+
   </div>
-</div>
-<div class="modal-overlay" id="modal-lab">
-  <div class="modal">
-    <div class="modal-title" id="modal-lab-title">Lab / Project</div>
-    <input type="hidden" id="edit-lab-id">
-    <div class="form-row"><label class="form-label">Name</label><input class="input" id="lab-name" placeholder="e.g. CyberArk sandbox"></div>
-    <div class="form-row"><label class="form-label">Subtitle</label><input class="input" id="lab-subtitle" placeholder="e.g. PAM testing environment"></div>
-    <div class="form-row"><label class="form-label">Type</label><select class="form-select" id="lab-category"><option value="lab">Lab</option><option value="project">Project</option></select></div>
-    <div class="form-row"><label class="form-label">Status</label><select class="form-select" id="lab-status"><option value="active">Active</option><option value="live">Live</option><option value="planned">Planned</option><option value="pending">Pending</option><option value="locate">Locate</option><option value="winding-down">Winding Down</option></select></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-lab')">Cancel</button><button class="btn btn-primary" onclick="saveLab()">Save</button></div>
+</section>
+
+<!-- SPEAKING -->
+<section id="speaking">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">03</span>
+      <h2>Speaking</h2>
+    </div>
+    <div class="talk-card reveal" style="margin-bottom: 1px;">
+      <div class="talk-venue">ISC2 Silicon Valley Chapter · August 7, 2025</div>
+      <div class="talk-title">Non-Human Identity Management</div>
+      <p class="talk-desc">Honored to present on the growing challenge of securing machine identities — service accounts, API keys, bots, and AI agents — and what modern NHI management looks like in practice.</p>
+      <div class="talk-pills">
+        <span class="talk-pill">NHI</span>
+        <span class="talk-pill">Machine Identity</span>
+        <span class="talk-pill">IAM Strategy</span>
+      </div>
+    </div>
+    <div class="talk-card reveal">
+      <div class="talk-venue">RSA Conference 2026 · San Francisco</div>
+      <div class="talk-title">"My AI Will Call Your AI: Securing<br>Agent-to-Agent Communication"</div>
+      <p class="talk-desc">Co-presented a deep-dive into securing AI agent protocols. Covered MCP security vulnerabilities, OWASP Agentic Top 10, OWASP MCP Top 10, CVE analysis, and the ACRF framework — with a live vulnerable MCP lab demo.</p>
+      <div class="talk-pills">
+        <span class="talk-pill">MCP Security</span>
+        <span class="talk-pill">OWASP</span>
+        <span class="talk-pill">ACRF</span>
+        <span class="talk-pill">Zero Trust</span>
+      </div>
+    </div>
   </div>
-</div>
-<div class="modal-overlay" id="modal-log">
-  <div class="modal">
-    <div class="modal-title">Log activity</div>
-    <div class="form-row"><label class="form-label">What did you work on?</label><input class="input" id="log-entry" placeholder="e.g. Security+ Domain 4 review"></div>
-    <div class="form-row"><label class="form-label">Tag</label><input class="input" id="log-tag" placeholder="e.g. security+ · 30min"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-log')">Cancel</button><button class="btn btn-primary" onclick="saveLog()">Save</button></div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <h2>Get in touch</h2>
+    <p class="contact-sub">IAM strategy, agentic AI security, or just to connect.</p>
+    <div class="contact-row">
+      <a href="https://www.linkedin.com/in/ravikarthick/" class="btn btn-solid" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:ravikarthick@aol.com" class="btn btn-outline">Email</a>
+    </div>
   </div>
-</div>
-<div class="modal-overlay" id="modal-next">
-  <div class="modal">
-    <div class="modal-title">Add next up item</div>
-    <div class="form-row"><label class="form-label">Task</label><input class="input" id="next-title" placeholder="e.g. Review GRC domain"></div>
-    <div class="form-row"><label class="form-label">Priority</label><select class="form-select" id="next-priority"><option value="high">High</option><option value="scheduled">Scheduled</option><option value="low">When Free</option></select></div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-next')">Cancel</button><button class="btn btn-primary" onclick="saveNext()">Save</button></div>
-  </div>
-</div>
+</section>
+
+<footer>
+  <p>© 2026 Ravi Karthick Sankar</p>
+</footer>
 
 <script>
-const API='';
-let currentModel='llama3.2:latest';
-let panelContext='';
-let currentContextKey='';
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  toggle.addEventListener('click', () => links.classList.toggle('open'));
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
 
-async function get(u){const r=await fetch(API+u);return r.json();}
-async function post(u,b){const r=await fetch(API+u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
-async function put(u,b){const r=await fetch(API+u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json();}
-async function patch(u,b){const r=await fetch(API+u,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});return r.json();}
-async function del(u){const r=await fetch(API+u,{method:'DELETE'});return r.json();}
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
-
-function renderMsg(role,content){
-  const log=document.getElementById('chat-log');
-  const div=document.createElement('div');
-  div.className='chat-msg '+(role==='user'?'user-msg':'assistant');
-  if(role==='assistant') div.innerHTML='<span class="chat-msg-label">assistant</span>'+content.replace(/\n/g,'<br>');
-  else div.textContent=content;
-  log.appendChild(div);
-  log.scrollTop=log.scrollHeight;
-  return div;
-}
-
-function nav(page,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  el.classList.add('active');
-  if(page==='dashboard')loadDashboard();
-  if(page==='progress')loadProgress();
-  if(page==='goals')loadGoals();
-  if(page==='labs')loadLabs();
-  if(page==='today')loadToday();
-}
-
-function ctxKey(title){return title.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').slice(0,40);}
-
-async function openPanel(title,sub,context,chips){
-  document.getElementById('panel-title').textContent=title;
-  document.getElementById('panel-sub').textContent=sub;
-  panelContext=context;
-  currentContextKey=ctxKey(title);
-  const qc=document.getElementById('quick-chips');
-  qc.innerHTML=(chips||[]).map(function(c){return '<button class="quick-chip" onclick="quickChat(\''+c.replace(/'/g,"\\'")+'\')">' +esc(c)+'</button>';}).join('');
-  const log=document.getElementById('chat-log');
-  log.innerHTML='';
-  document.getElementById('side-panel').classList.add('open');
-  try{
-    const history=await get('/api/chat-history/'+encodeURIComponent(currentContextKey));
-    if(history&&history.length>0){
-      history.forEach(function(m){renderMsg(m.role,m.content);});
-      const sep=document.createElement('div');
-      sep.style.cssText='text-align:center;font-size:10px;font-family:var(--mono);color:var(--slate4);padding:8px 0;border-top:1px solid var(--border);margin-top:4px';
-      sep.textContent='--- previous conversation above ---';
-      log.appendChild(sep);
-    } else {
-      const welcome='Looking at '+title+'. '+sub+' What would you like to explore?';
-      renderMsg('assistant',welcome);
-      post('/api/chat-history',{context_key:currentContextKey,context_title:title,role:'assistant',content:welcome});
-    }
-  } catch(e){
-    renderMsg('assistant','Looking at '+title+'. What would you like to explore?');
-  }
-  log.scrollTop=log.scrollHeight;
-}
-
-function openGlobalChat(){
-  openPanel('Assistant','Ask anything about your progress.','General assistant for Raka.',['What should I focus on today?','Quiz me on Security+','Show my biggest gaps','Weekly sprint plan']);
-}
-
-function closePanel(){document.getElementById('side-panel').classList.remove('open');}
-
-function setModel(model,type){
-  currentModel=model;
-  document.getElementById('mbtn-fast').classList.toggle('active',type==='fast');
-  document.getElementById('mbtn-smart').classList.toggle('active',type==='smart');
-}
-
-function quickChat(text){document.getElementById('chat-input').value=text;sendChat();}
-
-async function buildContext(){
-  try{
-    const r=await Promise.all([get('/api/goals'),get('/api/certs'),get('/api/stats')]);
-    const goals=r[0],certs=r[1],stats=r[2];
-    const cs=certs.map(function(c){const avg=c.domains.length?Math.round(c.domains.reduce(function(s,d){return s+d.progress;},0)/c.domains.length):0;return c.title+': '+avg+'%';}).join(', ');
-    const gs=goals.map(function(g){const done=g.tasks.filter(function(t){return t.done;}).length;return g.title+' ('+done+'/'+g.tasks.length+' done)';}).join('; ');
-    return 'You are a personal learning assistant for Raka (Ravi Karthick Sankar), Senior Solutions Advisory Consultant at Deloitte, IAM/cybersecurity specialist, 14+ years. Tech: SailPoint IIQ, Okta, CyberArk, Radiant Logic, Entra ID. Goal: Zero Trust Architect & IAM Platform Lead. Certs: '+cs+'. Goals: '+gs+'. Stats: '+stats.completed+' done, '+stats.remaining+' remaining. Context: '+panelContext+'. Be concise, direct, no fluff. Max 3-4 sentences unless a plan is requested.';
-  }catch(e){return panelContext||'You are a helpful personal assistant for Raka.';}
-}
-
-async function sendChat(){
-  const input=document.getElementById('chat-input');
-  const text=input.value.trim();
-  if(!text)return;
-  input.value='';
-  renderMsg('user',text);
-  post('/api/chat-history',{context_key:currentContextKey,context_title:document.getElementById('panel-title').textContent,role:'user',content:text});
-  const log=document.getElementById('chat-log');
-  const thinking=document.createElement('div');
-  thinking.className='chat-msg assistant';
-  thinking.innerHTML='<span class="chat-thinking">thinking...</span>';
-  log.appendChild(thinking);
-  log.scrollTop=log.scrollHeight;
-  const ctx=await buildContext();
-  try{
-    const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:currentModel,stream:false,messages:[{role:'system',content:ctx},{role:'user',content:text}]})});
-    const d=await r.json();
-    const raw=d.message&&d.message.content?d.message.content:'No response.';
-    const reply=raw.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-    thinking.innerHTML='<span class="chat-msg-label">assistant</span>'+reply.replace(/\n/g,'<br>');
-    post('/api/chat-history',{context_key:currentContextKey,context_title:document.getElementById('panel-title').textContent,role:'assistant',content:reply});
-  }catch(e){
-    thinking.innerHTML='<span class="chat-msg-label" style="color:var(--red)">error</span>Could not reach Ollama. Is it running?';
-  }
-  log.scrollTop=log.scrollHeight;
-}
-
-async function clearHistory(){
-  if(!currentContextKey)return;
-  if(!confirm('Clear this conversation history?'))return;
-  await del('/api/chat-history/'+encodeURIComponent(currentContextKey));
-  document.getElementById('chat-log').innerHTML='';
-  renderMsg('assistant','History cleared. What would you like to explore?');
-}
-
-async function loadDashboard(){
-  const r=await Promise.all([get('/api/stats'),get('/api/certs'),get('/api/goals')]);
-  const stats=r[0],certs=r[1],goals=r[2];
-  document.getElementById('ov-done').textContent=stats.completed;
-  document.getElementById('ov-active').textContent=stats.active;
-  document.getElementById('ov-remaining').textContent=stats.remaining;
-  document.getElementById('stat-done').textContent=stats.completed;
-  document.getElementById('stat-active').textContent=stats.active;
-  document.getElementById('dash-certs').innerHTML=certs.map(function(c){
-    const avg=c.domains.length?Math.round(c.domains.reduce(function(s,d){return s+d.progress;},0)/c.domains.length):0;
-    const cls=avg>=80?'fill-green':avg>=40?'fill-teal':'fill-dim';
-    return '<div class="prog-row" onclick="openCertChat('+c.id+',\''+c.title.replace(/'/g,"\\'")+'\','+avg+')"><div class="prog-label"><span class="prog-name">'+esc(c.title)+'</span><span class="prog-pct">'+avg+'%</span></div><div class="prog-track"><div class="prog-fill '+cls+'" style="width:'+avg+'%"></div></div></div>';
-  }).join('')||'<div class="section-empty">no certs yet</div>';
-  document.getElementById('dash-goals').innerHTML=goals.slice(0,4).map(function(g){
-    const done=g.tasks.filter(function(t){return t.done;}).length,total=g.tasks.length,pct=total?Math.round(done/total*100):0;
-    return '<div class="prog-row" onclick="openGoalChat('+g.id+',\''+g.title.replace(/'/g,"\\'")+'\','+done+','+total+')"><div class="prog-label"><span class="prog-name">'+esc(g.title)+'</span><span class="prog-pct">'+done+'/'+total+'</span></div><div class="prog-track"><div class="prog-fill fill-blue" style="width:'+pct+'%"></div></div></div>';
-  }).join('')||'<div class="section-empty">no goals yet</div>';
-  await loadDashToday();
-}
-
-async function loadDashToday(){
-  const today=new Date().toISOString().split('T')[0];
-  const r=await Promise.all([get('/api/log?date='+today),get('/api/nextup')]);
-  const log=r[0],nextup=r[1];
-  document.getElementById('dash-today-log').innerHTML=log.length?log.map(function(e){return '<div class="today-entry"><div class="today-time">'+(e.log_time||'')+'</div><div style="flex:1"><div class="today-text">'+esc(e.entry)+'</div>'+(e.tag?'<div class="today-tag">'+esc(e.tag)+'</div>':'')+'</div></div>';}).join(''):'<div class="section-empty">nothing logged yet</div>';
-  const pc={high:'var(--amber)',scheduled:'var(--teal)',low:'var(--slate4)',normal:'var(--slate4)'};
-  const pl={high:'high',scheduled:'scheduled',low:'when free',normal:'normal'};
-  document.getElementById('dash-nextup').innerHTML=nextup.map(function(n){return '<div class="next-item" style="border-left-color:'+(pc[n.priority]||'var(--teal)')+'"><div style="flex:1"><div class="next-label" style="color:'+(pc[n.priority]||'var(--teal)')+'">'+( pl[n.priority]||n.priority)+'</div><div class="next-text">'+esc(n.title)+'</div></div></div>';}).join('')||'<div class="section-empty">nothing queued</div>';
-}
-
-async function quickLog(){
-  const input=document.getElementById('quick-log-input');
-  const entry=input.value.trim();if(!entry)return;
-  await post('/api/log',{entry,tag:''});input.value='';loadDashToday();
-}
-
-async function openCertChat(id,title,avg){
-  const certs=await get('/api/certs');
-  const cert=certs.find(function(c){return c.id===id;});
-  const domains=cert?cert.domains.map(function(d){return d.name+': '+d.progress+'%';}).join(', '):'';
-  panelContext='You are helping with ONE specific certification: "'+title+'". Overall progress: '+avg+'%. Domain breakdown: '+domains+'. Focus ONLY on this cert. Help the user understand what to study next and where to focus.';
-  openPanel(title,avg+'% complete',panelContext,['What should I study next?','Which domain is weakest?','Give me a 1-week plan','Quiz me on this']);
-}
-
-async function openGoalChat(id,title,done,total){
-  const goals=await get('/api/goals');
-  const goal=goals.find(function(g){return g.id===id;});
-  const tasks=goal?goal.tasks.map(function(t){return (t.done?'done: ':'todo: ')+t.title;}).join(', '):'';
-  panelContext='You are helping with ONE specific goal: "'+title+'". Progress: '+done+'/'+total+' tasks. Tasks: '+tasks+'. Focus ONLY on this goal. Do not mention or list other goals. Help the user stay on track with this specific goal only.';
-  openPanel(title,done+'/'+total+' tasks complete',panelContext,['What should I do next?','How do I stay on track?','Break this down further','What might be blocking me?']);
-}
-
-function openLabChat(name,subtitle,status){
-  panelContext='You are helping with ONE specific lab/project: "'+name+'". Details: '+subtitle+'. Status: '+status+'. Focus ONLY on this item. Help with setup, troubleshooting, or next steps.';
-  openPanel(name,subtitle||'lab / project',panelContext,['What should I work on next?','Help me troubleshoot','How do I set this up?','What are the goals here?']);
-}
-
-async function loadProgress(){
-  const certs=await get('/api/certs');
-  const el=document.getElementById('certs-list');
-  if(!certs.length){el.innerHTML='<div class="section-empty">no certs yet</div>';return;}
-  el.innerHTML=certs.map(function(c){
-    const avg=c.domains.length?Math.round(c.domains.reduce(function(s,d){return s+d.progress;},0)/c.domains.length):0;
-    const doms=c.domains.map(function(d){return '<div class="prog-edit-row"><span style="min-width:190px;font-size:13px">'+esc(d.name)+'</span><input type="range" min="0" max="100" step="5" value="'+d.progress+'" oninput="this.nextElementSibling.textContent=this.value+\'%\'" onchange="updateDomain('+d.id+',this.value)"><span class="prog-pct" style="min-width:36px">'+d.progress+'%</span></div>';}).join('');
-    return '<div class="card" style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:600">'+esc(c.title)+'</div>'+(c.subtitle?'<div style="font-size:11px;color:var(--slate4);margin-top:2px">'+esc(c.subtitle)+'</div>':'')+'</div><div style="display:flex;gap:8px;align-items:center"><span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--teal)">'+avg+'%</span><button class="btn-chat" onclick="openCertChat('+c.id+',\''+c.title.replace(/'/g,"\\'")+'\','+avg+')"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h10v7H7l-3 3V8H1z"/></svg>Chat</button><button class="btn btn-sm btn-danger" onclick="deleteCert('+c.id+')">Remove</button></div></div>'+doms+'<div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><input class="input input-sm" id="new-domain-'+c.id+'" placeholder="Add domain / topic..."><button class="btn btn-sm" onclick="addDomain('+c.id+')">+ Add</button></div></div>';
-  }).join('');
-}
-
-async function updateDomain(id,val){await patch('/api/cert-domains/'+id,{progress:parseInt(val)});}
-async function addDomain(certId){
-  const input=document.getElementById('new-domain-'+certId);
-  if(!input.value.trim())return;
-  await post('/api/certs/'+certId+'/domains',{name:input.value.trim()});
-  input.value='';loadProgress();
-}
-async function deleteCert(id){if(!confirm('Remove this cert?'))return;await del('/api/certs/'+id);loadProgress();loadDashboard();}
-
-async function loadGoals(){
-  const goals=await get('/api/goals');
-  const el=document.getElementById('goals-list');
-  if(!goals.length){el.innerHTML='<div class="section-empty">no goals yet</div>';return;}
-  el.innerHTML=goals.map(function(g){
-    const done=g.tasks.filter(function(t){return t.done;}).length,total=g.tasks.length,pct=total?Math.round(done/total*100):0;
-    const tasks=g.tasks.map(function(t){return '<div class="task-row"><div class="task-check '+(t.done?'done':'')+'" onclick="toggleTask('+t.id+')"></div><span class="task-text '+(t.done?'done':'')+'">'+esc(t.title)+'</span><button class="task-del" onclick="deleteTask('+t.id+')">×</button></div>';}).join('');
-    return '<div class="goal-card"><div class="goal-header"><div style="flex:1"><div class="goal-title-text">'+esc(g.title)+'</div>'+(g.subtitle?'<div class="goal-sub">'+esc(g.subtitle)+'</div>':'')+'<div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span class="tag tag-'+(g.status==='active'?'active':g.status==='done'?'done':'pending')+'">'+g.status+'</span><span style="font-size:11px;color:var(--slate4);font-family:var(--mono)">'+done+'/'+total+' · '+pct+'%</span></div></div><div class="goal-actions"><button class="btn-chat" onclick="openGoalChat('+g.id+',\''+g.title.replace(/'/g,"\\'")+'\','+done+','+total+')"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h10v7H7l-3 3V8H1z"/></svg>Chat</button><button class="btn btn-sm" onclick="openEditGoalModal('+g.id+',\''+esc(g.title)+'\',\''+esc(g.subtitle||'')+'\',\''+g.category+'\',\''+g.status+'\')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteGoal('+g.id+')">Delete</button></div></div><div>'+tasks+'</div><div class="add-task-row"><input class="input input-sm" id="new-task-'+g.id+'" placeholder="Add a task..." onkeydown="if(event.key===\'Enter\')addTask('+g.id+')"><button class="btn btn-sm" onclick="addTask('+g.id+')">+ Add</button></div></div>';
-  }).join('');
-}
-
-async function toggleTask(id){await patch('/api/tasks/'+id+'/toggle');loadGoals();loadDashboard();}
-async function addTask(goalId){
-  const input=document.getElementById('new-task-'+goalId);
-  if(!input.value.trim())return;
-  await post('/api/goals/'+goalId+'/tasks',{title:input.value.trim()});
-  input.value='';loadGoals();loadDashboard();
-}
-async function deleteTask(id){await del('/api/tasks/'+id);loadGoals();loadDashboard();}
-async function deleteGoal(id){if(!confirm('Delete this goal and all tasks?'))return;await del('/api/goals/'+id);loadGoals();loadDashboard();}
-
-async function loadLabs(){
-  const labs=await get('/api/labs');
-  const renderLab=function(l){return '<div class="item-row" onclick="openLabChat(\''+l.name.replace(/'/g,"\\'")+'\',\''+(l.subtitle||'').replace(/'/g,"\\'")+'\',\''+l.status+'\')"><div style="flex:1"><div class="item-row-name">'+esc(l.name)+'</div>'+(l.subtitle?'<div class="item-row-sub">'+esc(l.subtitle)+'</div>':'')+'</div><div class="item-row-right"><span class="tag tag-'+l.status+'">'+l.status+'</span><button class="btn btn-sm" onclick="event.stopPropagation();openEditLabModal('+l.id+',\''+esc(l.name)+'\',\''+esc(l.subtitle||'')+'\',\''+l.category+'\',\''+l.status+'\')">Edit</button><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteLab('+l.id+')">×</button></div></div>';};
-  document.getElementById('labs-lab').innerHTML=labs.filter(function(l){return l.category==='lab';}).map(renderLab).join('')||'<div class="section-empty">no labs yet</div>';
-  document.getElementById('labs-project').innerHTML=labs.filter(function(l){return l.category==='project';}).map(renderLab).join('')||'<div class="section-empty">no projects yet</div>';
-}
-async function deleteLab(id){await del('/api/labs/'+id);loadLabs();}
-
-async function loadToday(){
-  const today=new Date().toISOString().split('T')[0];
-  const now=new Date();
-  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('today-date-label').textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate();
-  const r=await Promise.all([get('/api/log?date='+today),get('/api/nextup')]);
-  const log=r[0],nextup=r[1];
-  document.getElementById('today-log-list').innerHTML=log.map(function(e){return '<div class="today-entry"><div class="today-time">'+(e.log_time||'')+'</div><div style="flex:1"><div class="today-text">'+esc(e.entry)+'</div>'+(e.tag?'<div class="today-tag">'+esc(e.tag)+'</div>':'')+'</div><button class="today-del" onclick="deleteLog('+e.id+')">×</button></div>';}).join('')||'<div class="section-empty">nothing logged yet today</div>';
-  const pc={high:'var(--amber)',scheduled:'var(--teal)',low:'var(--slate4)',normal:'var(--slate4)'};
-  const pl={high:'high',scheduled:'scheduled',low:'when free',normal:'normal'};
-  document.getElementById('nextup-list').innerHTML=nextup.map(function(n){return '<div class="next-item" style="border-left-color:'+(pc[n.priority]||'var(--teal)')+'"><div style="flex:1"><div class="next-label" style="color:'+(pc[n.priority]||'var(--teal)')+'">'+( pl[n.priority]||n.priority)+'</div><div class="next-text">'+esc(n.title)+'</div></div><button class="next-del" onclick="deleteNextUp('+n.id+')">×</button></div>';}).join('')||'<div class="section-empty">nothing queued</div>';
-}
-async function deleteLog(id){await del('/api/log/'+id);loadToday();loadDashToday();}
-async function deleteNextUp(id){await del('/api/nextup/'+id);loadToday();loadDashToday();}
-
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
-
-function openAddGoalModal(){document.getElementById('edit-goal-id').value='';['goal-title','goal-subtitle'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('goal-category').value='general';document.getElementById('goal-status').value='active';openModal('modal-goal');}
-function openEditGoalModal(id,title,subtitle,category,status){document.getElementById('edit-goal-id').value=id;document.getElementById('goal-title').value=title;document.getElementById('goal-subtitle').value=subtitle;document.getElementById('goal-category').value=category;document.getElementById('goal-status').value=status;openModal('modal-goal');}
-async function saveGoal(){
-  const id=document.getElementById('edit-goal-id').value;
-  const data={title:document.getElementById('goal-title').value.trim(),subtitle:document.getElementById('goal-subtitle').value.trim(),category:document.getElementById('goal-category').value,status:document.getElementById('goal-status').value};
-  if(!data.title)return;
-  if(id)await put('/api/goals/'+id,data);else await post('/api/goals',data);
-  closeModal('modal-goal');loadGoals();loadDashboard();
-}
-
-function openAddCertModal(){openModal('modal-cert');}
-async function saveCert(){
-  const title=document.getElementById('cert-title').value.trim();
-  const subtitle=document.getElementById('cert-subtitle').value.trim();
-  if(!title)return;
-  await post('/api/certs',{title,subtitle});
-  document.getElementById('cert-title').value='';document.getElementById('cert-subtitle').value='';
-  closeModal('modal-cert');loadProgress();loadDashboard();
-}
-
-function openAddLabModal(){document.getElementById('modal-lab-title').textContent='Add lab / project';document.getElementById('edit-lab-id').value='';['lab-name','lab-subtitle'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('lab-category').value='lab';document.getElementById('lab-status').value='active';openModal('modal-lab');}
-function openEditLabModal(id,name,subtitle,category,status){document.getElementById('modal-lab-title').textContent='Edit lab / project';document.getElementById('edit-lab-id').value=id;document.getElementById('lab-name').value=name;document.getElementById('lab-subtitle').value=subtitle;document.getElementById('lab-category').value=category;document.getElementById('lab-status').value=status;openModal('modal-lab');}
-async function saveLab(){
-  const id=document.getElementById('edit-lab-id').value;
-  const data={name:document.getElementById('lab-name').value.trim(),subtitle:document.getElementById('lab-subtitle').value.trim(),category:document.getElementById('lab-category').value,status:document.getElementById('lab-status').value};
-  if(!data.name)return;
-  if(id)await put('/api/labs/'+id,data);else await post('/api/labs',data);
-  closeModal('modal-lab');loadLabs();
-}
-
-function openAddLogModal(){openModal('modal-log');}
-async function saveLog(){
-  const entry=document.getElementById('log-entry').value.trim();
-  const tag=document.getElementById('log-tag').value.trim();
-  if(!entry)return;
-  await post('/api/log',{entry,tag});
-  document.getElementById('log-entry').value='';document.getElementById('log-tag').value='';
-  closeModal('modal-log');loadToday();loadDashToday();
-}
-
-function openAddNextModal(){openModal('modal-next');}
-async function saveNext(){
-  const title=document.getElementById('next-title').value.trim();
-  const priority=document.getElementById('next-priority').value;
-  if(!title)return;
-  await post('/api/nextup',{title,priority});
-  document.getElementById('next-title').value='';
-  closeModal('modal-next');loadToday();loadDashToday();
-}
-
-function toggleExpand(){
-  const panel=document.getElementById('side-panel');
-  const icon=document.getElementById('expand-icon');
-  const isExpanded=panel.classList.toggle('expanded');
-  if(isExpanded){
-    icon.innerHTML='<path d="M6 2H2v4M10 14h4v-4M2 6l5 5M14 10l-5-5"/>';
-    document.getElementById('expand-btn').title='Back to side panel';
-  } else {
-    icon.innerHTML='<path d="M10 2h4v4M6 14H2v-4M14 6l-5 5M2 10l5-5"/>';
-    document.getElementById('expand-btn').title='Expand to full screen';
-  }
-}
-
-function updateClock(){
-  const now=new Date();
-  document.getElementById('clock-pill').textContent=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dl=document.getElementById('dash-date');
-  if(dl)dl.textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate();
-}
-updateClock();setInterval(updateClock,30000);
-loadDashboard();
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('in'), i * 60);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
 </body>
 </html>
